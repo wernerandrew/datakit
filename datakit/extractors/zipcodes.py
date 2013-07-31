@@ -6,8 +6,7 @@ from math import degrees, radians, sin, cos, acos
 import numpy as np
 import pandas as pd
 
-from settings import get_postcode_args
-from util import is_number, safe_get_values, check_any_null
+from ..util import is_number, safe_get_values, check_any_null
 
 def normalize_string(s):
     # strip whitespace and dashes, convert to uppercase
@@ -160,9 +159,3 @@ class DistanceCalculator(object):
             dist = np.nan
             #print distance, lat_a, long_a, lat_b, long_b
         return dist
-
-def get_distance_calculator():
-    post_mappers = [USPostMapper(*get_postcode_args('US')),
-                    UKPostMapper(*get_postcode_args('UK')),
-                    CanadaPostMapper(*get_postcode_args('Canada'))]
-    return DistanceCalculator(post_mappers)
