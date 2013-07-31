@@ -1,0 +1,68 @@
+import sys
+sys.path.append('..')
+
+from sklearn.pipeline import Pipeline
+import sklearn.metrics
+
+import cv
+from util import maybe_print
+
+def get_pipeline(feature_set, predictor):
+    return Pipeline([('mapper', feature_set), ('predictor', predictor)])
+
+def choose_eval_fn(error_arg, score_arg):
+    error, score = None, None
+    if score_arg is None:
+        if error_arg is None:
+            error = sklearn.metrics.mean_squared_error
+        else:
+            error = getattr(sklearn.metrics, error_arg)
+    else:
+        score = getattr(sklearn.metrics, score_arg)
+
+    return error, score
+
+def parse_parameters(params):
+    return {'predictor__{0}'.format(p): params[p] for p in params}
+
+def setup_model(source, builder, objective_fn, verbose=True):
+    maybe_print('Building events...', verbose)
+    X = builder.build_events(source)
+    maybe_print('Calculating objective...', verbose)
+    y = objective_fn(X)
+    return (X, y)
+
+def train_model(model, X, y, parameters=None, verbose=True):
+    if parameters is None:
+        parameters = {}
+    else:
+        parameters = parse_parameters(parameters)
+
+    model.set_params(**parameters)
+    maybe_print('Fitting model...', verbose)
+    model.fit(X, y)
+    maybe_print('Done!', verbose)
+    return model
+
+def test_model(model, X, y, error_fn=None, score_fn=None, 
+               search_params=None, verbose=True):
+
+    maybe_print('Training model...', verbose)
+    if search_params is not None:
+        validator = cv.DataFrameCV(model, search_params, 
+                                   n_folds=args.nfolds,
+                                   error_fn=error_fn,
+                                   score_fn=score_fn,
+                                   verbose=verbose)
+        validator.fit(X, y)
+        err = validator.best_result
+    else:
+        err = cv.cv_dataframe(model, X, y, err_fn, score_fn, 
+                              n_folds=args.nfolds, verbose=verbose)
+    return err
+
+def main(args):
+    print 'Test complete! (result = {0})'.format(err)
+
+if __name__ == '__main__':
+    main(get_args())
