@@ -1,4 +1,24 @@
-# extractors.py
+# Copyright (c) 2013 Andrew Werner and Anthony DeGangi
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+# some basic and useful extractors
 
 from collections import defaultdict
 from itertools import izip
@@ -8,11 +28,11 @@ from sklearn.pipeline import Pipeline
 
 from util import safe_get_values, check_any_null
 
-class Binner(object):
+class Binner(BaseEstimator):
     """Takes a single column vector of values and converts to bins.
     Uses the numpy.digitize function to do the heavy lifting.
     """
-    def __init__(self, nbins, has_log_bins=False):
+    def __init__(self, nbins=10, has_log_bins=False):
         self.nbins = nbins
         self.has_log_bins = has_log_bins
         self.bin_edges = None
@@ -53,13 +73,13 @@ class Binner(object):
         self.fit(X, y)
         return self.transform(X)
 
-class ValueCounter(object):
+class ValueCounter(BaseEstimator):
     """Given a matrix X, computes counting statistics using the 
     rows of the matrix as keys.
 
     For missing or null keys, the global population average is imputed.
     """
-    def __init__(self, target_value):
+    def __init__(self, target_value=1):
         self.target_value = target_value
         self.reset_counts()
         self._columns = None # useful for dict conversions
