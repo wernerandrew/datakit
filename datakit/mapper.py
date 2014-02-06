@@ -31,6 +31,41 @@ class FeatureMapper(BaseEstimator):
     of the provided input pandas DataFrame, transforms data into a NumPy
     ndarray suitable to input to a scikit-learn object.
     """
+
+    @classmethod
+    def from_rules(cls, metadata, rules):
+        """
+        Uses a rules-based approach to extract features.
+        - Column names are mapped to metadata, which is an arbitrary
+          hashable python object (e.g., a tuple or namedtuple).
+
+        - Rules are defined in terms of a mapping:
+          metadata -> (MapperClass, [args], {kwargs})
+          where the kwargs dict is optional.
+        """
+        features = []
+        for col, md in metadata.iteritems():
+            try:
+                mapper_params = rules[md]
+            except KeyError:
+                msg = 'Col %s has unknown metadata' % col
+                raise RuntimeError(msg)
+            mapper = cls._make_mapper(params)
+            mapper_name = '%s-%s' % (col, mapper.__name__)
+            features.append((mapper_name, col, mapper))
+
+        return cls(features)
+
+    @staticmethod
+    def _make_mapper(params):
+        if len(params) == 2:
+            mapper, args = params
+            kwargs = {}
+        else:
+            mapper, args, kwargs = params
+
+        return mapper(*args, **kwargs)
+
     def __init__(self, features):
         """
         Parameters
